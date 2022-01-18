@@ -1,0 +1,136 @@
+ctmc 
+
+// const int K;
+
+const double mining_rate = 0.0017;   // mean mining rate: 1 every 10 min.
+const double prop_rate = 3;          // mean delay of the network: 4 sec.
+const double resume_rate = 3; 
+
+const max_block = 1;
+
+global block_community1 : [0..max_block] init 0; 
+global block_community2 : [0..max_block] init 0; 
+global block_community3 : [0..max_block] init 0; 
+global block_community4 : [0..max_block] init 0; 
+global block_community5 : [0..max_block] init 0; 
+global block_community6 : [0..max_block] init 0;
+
+
+// Community 1
+
+module MinerA
+
+sA : [1..2] init 1;
+local_block_A : [0..max_block] init 0;
+
+[] (sA = 1) & (local_block_A < max_block) -> mining_rate : (sA'=2);
+[] (sA = 1) & (local_block_A < block_community1) -> prop_rate : (local_block_A' = block_community1);
+[] (sA = 2) & (local_block_A < max_block) & (local_block_A + 1 > block_community1) -> prop_rate : 
+                                      (local_block_A' = local_block_A + 1) & 
+                                      (block_community1' = local_block_A + 1) &
+                                      (sA' = 1);
+[] (sA = 2) & (local_block_A < max_block) & (local_block_A + 1 <= block_community1) -> resume_rate : 
+                                      (local_block_A' = block_community1) & (sA' = 1);
+endmodule
+
+
+module Node1
+
+local_block1 : [0..max_block] init 0;
+
+[] (block_community1 > local_block1) -> prop_rate : (local_block1' = block_community1);
+endmodule
+
+// Community 1-2
+
+module Node2
+
+local_block2 : [0..max_block] init 0;
+
+[] (block_community1 > local_block2) -> prop_rate : (local_block2' = block_community1);
+[] (block_community2 > local_block2) -> prop_rate : (local_block2' = block_community2);
+[] (block_community1 < local_block2) -> prop_rate : (block_community1' = local_block2);
+[] (block_community2 < local_block2) -> prop_rate : (block_community2' = local_block2);
+endmodule
+
+// Community 2
+
+module Node3
+
+local_block3 : [0..max_block] init 0;
+
+[] (block_community2 > local_block3) -> prop_rate : (local_block3' = block_community2);
+endmodule
+
+// Community 2-3-4
+
+module Node4
+
+local_block4 : [0..max_block] init 0;
+
+[] (block_community2 > local_block4) -> prop_rate : (local_block4' = block_community2);
+[] (block_community3 > local_block4) -> prop_rate : (local_block4' = block_community3);
+[] (block_community4 > local_block4) -> prop_rate : (local_block4' = block_community4);
+[] (block_community2 < local_block4) -> prop_rate : (block_community2' = local_block4);
+[] (block_community3 < local_block4) -> prop_rate : (block_community3' = local_block4);
+[] (block_community4 < local_block4) -> prop_rate : (block_community4' = local_block4);
+endmodule
+
+// Community 3
+
+module Node5
+
+local_block5 : [0..max_block] init 0;
+
+[] (block_community3 > local_block5) -> prop_rate : (local_block5' = block_community3);
+endmodule
+
+// Community 4-5
+
+module Node6
+
+local_block6 : [0..max_block] init 0;
+
+[] (block_community4 > local_block6) -> prop_rate : (local_block6' = block_community4);
+[] (block_community5 > local_block6) -> prop_rate : (local_block6' = block_community5);
+[] (block_community4 < local_block6) -> prop_rate : (block_community4' = local_block6);
+[] (block_community5 < local_block6) -> prop_rate : (block_community5' = local_block6);
+endmodule
+
+// Community 5
+
+module Node7
+
+local_block7 : [0..max_block] init 0;
+
+[] (block_community5 > local_block7) -> prop_rate : (local_block7' = block_community5);
+endmodule
+
+// Community 5-6
+
+module Node8
+
+local_block8 : [0..max_block] init 0;
+
+[] (block_community5 > local_block8) -> prop_rate : (local_block8' = block_community5);
+[] (block_community6 > local_block8) -> prop_rate : (local_block8' = block_community6);
+[] (block_community5 < local_block8) -> prop_rate : (block_community5' = local_block8);
+[] (block_community6 < local_block8) -> prop_rate : (block_community6' = local_block8);
+endmodule
+
+// Community 6
+
+module MinerB
+
+sB : [1..2] init 1;
+local_block_B : [0..max_block] init 0;
+
+[] (sB = 1) & (local_block_B < max_block) -> mining_rate : (sB'=2);
+[] (sB = 1) & (local_block_B < block_community6) -> prop_rate : (local_block_B' = block_community6);
+[] (sB = 2) & (local_block_B < max_block) & (local_block_B + 1 > block_community6) -> prop_rate : 
+                                      (local_block_B' = local_block_B + 1) & 
+                                      (block_community6' = local_block_B + 1) &
+                                      (sB' = 1);
+[] (sB = 2) & (local_block_B < max_block) & (local_block_B + 1 <= block_community6) -> resume_rate : 
+                                      (local_block_B' = block_community6) & (sB' = 1);
+endmodule
